@@ -44,9 +44,18 @@ function DashboardLayout({ children }) {
               Patients
             </NavLink>
 
-            <button className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-[#7b655c] transition hover:bg-[#f7ede8]">
+            <NavLink
+              to="/appointments"
+              className={({ isActive }) =>
+                `block w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
+                  isActive
+                    ? "bg-[#f3e4df] text-[#5c4a42]"
+                    : "text-[#7b655c] hover:bg-[#f7ede8]"
+                }`
+              }
+            >
               Appointments
-            </button>
+            </NavLink>
 
             <button className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-[#7b655c] transition hover:bg-[#f7ede8]">
               Visits

@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { patientSchema } from "../../../schemas/patientSchema";
-import FormField from "../../ui/FormField";
+import FormField from "../ui/FormField";
 
 function AddPatientModal({ isOpen, onClose, onSubmit }) {
   const {
@@ -11,7 +11,7 @@ function AddPatientModal({ isOpen, onClose, onSubmit }) {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(patientSchema),
+    resolver: standardSchemaResolver(patientSchema),
     defaultValues: {
       firstName: "",
       lastName: "",

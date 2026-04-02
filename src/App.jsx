@@ -1,11 +1,11 @@
-import Login from "./pages/Login";
 import AppRoutes from "./routes/AppRoutes";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function App(){
   return (
-    <div>
-     <AppRoutes />
-    </div>
+    <ErrorBoundary>
+      <AppRoutes />
+    </ErrorBoundary>
   );
 }
 export default App;

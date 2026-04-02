@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { patientSchema } from "../../../schemas/patientSchema";
-import FormField from "../../ui/FormField";
+import FormField from "../ui/FormField";
 
 
 
@@ -19,7 +19,7 @@ function EditPatientModal({
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(patientSchema),
+    resolver: standardSchemaResolver(patientSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -60,104 +60,48 @@ function EditPatientModal({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[#7b655c]">
-                First Name
-              </label>
-              <input
-                type="text"
-                {...register("firstName")}
-                className="w-full rounded-xl border border-[#eadfd8] bg-white px-4 py-2 text-sm text-[#5c4a42] outline-none focus:border-[#d8beb3]"
-              />
+            <FormField
+              label="First Name"
+              name="firstName"
+              register={register}
+              error={errors.firstName}
+            />
 
-              {errors.firstName && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.firstName.message}
-                </p>
-              )}
-            </div>
+            <FormField
+              label="Last Name"
+              name="lastName"
+              register={register}
+              error={errors.lastName}
+            />
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[#7b655c]">
-                Last Name
-              </label>
-              <input
-                type="text"
-               
-               {...register("lastName")}
-                className="w-full rounded-xl border border-[#eadfd8] bg-white px-4 py-2 text-sm text-[#5c4a42] outline-none focus:border-[#d8beb3]"
-              />
-              {errors.lastName && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.lastName.message}
-                </p>
-              )}
-            </div>
+            <FormField
+              label="Email"
+              name="email"
+              type="email"
+              register={register}
+              error={errors.email}
+            />
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[#7b655c]">
-                Email
-              </label>
-              <input
-                type="email"
-                
-               {...register("email")}
-                className="w-full rounded-xl border border-[#eadfd8] bg-white px-4 py-2 text-sm text-[#5c4a42] outline-none focus:border-[#d8beb3]"
-              />
-              {errors.email && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+            <FormField
+              label="Phone"
+              name="phone"
+              register={register}
+              error={errors.phone}
+            />
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[#7b655c]">
-                Phone
-              </label>
-              <input
-                type="text"
-                {...register("phone")}
-                className="w-full rounded-xl border border-[#eadfd8] bg-white px-4 py-2 text-sm text-[#5c4a42] outline-none focus:border-[#d8beb3]"
-              />
-              {errors.phone && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.phone.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[#7b655c]">
-                TC No
-              </label>
-              <input
-                type="text"
-               {...register("tcNo")}
-                className="w-full rounded-xl border border-[#eadfd8] bg-white px-4 py-2 text-sm text-[#5c4a42] outline-none focus:border-[#d8beb3]"
-              />
-              {errors.tcNo && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.tcNo.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-[#7b655c]">
-                Birth Date
-              </label>
-              <input
-                type="date"
-                {...register("birthDate")}
-                className="w-full rounded-xl border border-[#eadfd8] bg-white px-4 py-2 text-sm text-[#5c4a42] outline-none focus:border-[#d8beb3]"
-              />
-              {errors.birthDate && (
-                <p className="mt-1 text-xs text-red-500">
-                  {errors.birthDate.message}
-                </p>
-              )}
-            </div>
+            <FormField
+              label="TC No"
+              name="tcNo"
+              register={register}
+              error={errors.tcNo}
+            />
+            <FormField
+              label="Birth Date"
+              name="birthDate"
+              type="date"
+              register={register}
+              error={errors.birthDate}
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
