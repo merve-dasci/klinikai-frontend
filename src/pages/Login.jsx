@@ -24,7 +24,8 @@ function Login() {
 
     try {
       const data = await loginUser(formData);
-      localStorage.setItem("token", data.token);
+      console.log(data);
+     localStorage.setItem("token", data.data.accessToken);
       setMessage("Login başarılı");
       navigate("/dashboard");
     } catch (error) {
