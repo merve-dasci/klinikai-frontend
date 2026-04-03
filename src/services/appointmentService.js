@@ -23,9 +23,9 @@ export const deleteAppointment = async (id) => {
   return response.data;
 };
 
-export const getAppointmentsPaginated = async (page, size) => {
+export const getAppointmentsPaginated = async (page, size, search = "") => {
   const response = await apiClient.get(
-    `/api/appointments/paginated?page=${page}&size=${size}`,
+    `/api/appointments/paginated?page=${page}&size=${size}&search=${search}`,
   );
   return response.data.data;
 };

@@ -42,6 +42,7 @@ function Appointments() {
       const data = await getAppointmentsPaginated(
         currentPage - 1,
         itemsPerPage,
+        searchTerm
       );
       setAppointments(data.content);
       setTotalPages(data.totalPages);
@@ -54,7 +55,7 @@ function Appointments() {
    };
 
    fetchAppointments();
- }, [currentPage]);
+ }, [currentPage, searchTerm]);
 
   useEffect(() => {
     const fetchSelectOptions = async () => {
@@ -76,7 +77,7 @@ function Appointments() {
 
   const refreshAppointments = async () => {
   try {
-   const data = await getAppointmentsPaginated(currentPage - 1, itemsPerPage);
+   const data = await getAppointmentsPaginated(currentPage - 1, itemsPerPage, searchTerm);
    setAppointments(data.content);
    setTotalPages(data.totalPages);
   } catch (error) {
@@ -137,16 +138,7 @@ const handleDeleteAppointment = async () => {
   }
 };
 
-const filteredAppointments = appointments.filter((appointment) => {
-  const search = searchTerm.toLowerCase();
 
-  return (
-    appointment.patientName?.toLowerCase().includes(search) ||
-    appointment.doctorName?.toLowerCase().includes(search) ||
-    appointment.status?.toLowerCase().includes(search) ||
-    appointment.notes?.toLowerCase().includes(search)
-  );
-});
 
   return (
     <DashboardLayout>
@@ -170,7 +162,10 @@ const filteredAppointments = appointments.filter((appointment) => {
                 type="text"
                 placeholder="Search appointment..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="rounded-xl border border-[#eadfd8] bg-[#fffaf7] px-4 py-2 text-sm text-[#5c4a42] outline-none"
               />
 
@@ -217,14 +212,14 @@ const filteredAppointments = appointments.filter((appointment) => {
                       Loading appointments...
                     </td>
                   </tr>
-                ) : filteredAppointments.length === 0 ? (
+                ) : appointments.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="px-4 py-10 text-center">
                       No appointments found
                     </td>
                   </tr>
                 ) : (
-                  filteredAppointments.map((appointment) => (
+                  appointments.map((appointment) => (
                     <tr
                       key={appointment.id}
                       className="border-b border-[#f1e6df] hover:bg-[#fdf8f6]"

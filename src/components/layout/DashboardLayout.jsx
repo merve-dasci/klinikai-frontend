@@ -33,14 +33,14 @@ function DashboardLayout({ children }) {
 
             <NavLink
               to="/patients"
-         className={({ isActive }) =>
-    `block w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
-      isActive
-        ? "bg-[#f3e4df] text-[#5c4a42]"
-        : "text-[#7b655c] hover:bg-[#f7ede8]"
-    }`
-  }
->
+              className={({ isActive }) =>
+                `block w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
+                  isActive
+                    ? "bg-[#f3e4df] text-[#5c4a42]"
+                    : "text-[#7b655c] hover:bg-[#f7ede8]"
+                }`
+              }
+            >
               Patients
             </NavLink>
 
@@ -57,13 +57,31 @@ function DashboardLayout({ children }) {
               Appointments
             </NavLink>
 
-            <button className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-[#7b655c] transition hover:bg-[#f7ede8]">
+            <NavLink
+              to="/visits"
+              className={({ isActive }) =>
+                `block w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
+                  isActive
+                    ? "bg-[#f3e4df] text-[#5c4a42]"
+                    : "text-[#7b655c] hover:bg-[#f7ede8]"
+                }`
+              }
+            >
               Visits
-            </button>
+            </NavLink>
 
-            <button className="w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-[#7b655c] transition hover:bg-[#f7ede8]">
+            <NavLink
+              to="/notes"
+              className={({ isActive }) =>
+                `block w-full rounded-xl px-4 py-3 text-left text-sm font-medium transition ${
+                  isActive
+                    ? "bg-[#f3e4df] text-[#5c4a42]"
+                    : "text-[#7b655c] hover:bg-[#f7ede8]"
+                }`
+              }
+            >
               AI Notes
-            </button>
+            </NavLink>
           </nav>
         </aside>
 
