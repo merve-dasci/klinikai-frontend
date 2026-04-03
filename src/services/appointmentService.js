@@ -2,12 +2,12 @@ import apiClient from "../api/apiClient";
 
 export const getAllAppointments = async () => {
   const response = await apiClient.get("/api/appointments");
-  return response.data;
+  return response.data.data;
 };
 
 export const createAppointment = async (appointmentData) => {
   const response = await apiClient.post("/api/appointments", appointmentData);
-  return response.data;
+  return response.data.data;
 };
 
 export const updateAppointment = async (id, appointmentData) => {
@@ -15,10 +15,17 @@ export const updateAppointment = async (id, appointmentData) => {
     `/api/appointments/${id}`,
     appointmentData,
   );
-  return response.data;
+  return response.data.data;
 };
 
 export const deleteAppointment = async (id) => {
   const response = await apiClient.delete(`/api/appointments/${id}`);
   return response.data;
+};
+
+export const getAppointmentsPaginated = async (page, size) => {
+  const response = await apiClient.get(
+    `/api/appointments/paginated?page=${page}&size=${size}`,
+  );
+  return response.data.data;
 };

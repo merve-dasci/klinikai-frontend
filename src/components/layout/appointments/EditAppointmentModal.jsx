@@ -4,7 +4,14 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { appointmentSchema } from "../../../schemas/appointmentSchema";
 import FormField from "../ui/FormField";
 
-function AddAppointmentModal({ isOpen, onClose, onSubmit, patients, doctors }) {
+function EditAppointmentModal({
+  isOpen,
+  onClose,
+  editingAppointment,
+  onSubmit,
+  patients,
+  doctors,
+}) {
   const {
     register,
     handleSubmit,
@@ -22,25 +29,31 @@ function AddAppointmentModal({ isOpen, onClose, onSubmit, patients, doctors }) {
   });
 
   useEffect(() => {
-    if (isOpen) {
+    if (editingAppointment) {
       reset({
-        appointmentDate: "",
-        status: "",
-        notes: "",
-        patientId: "",
-        doctorId: "",
+        appointmentDate: editingAppointment.appointmentDate
+          ? editingAppointment.appointmentDate.slice(0, 16)
+          : "",
+        status: editingAppointment.status || "",
+        notes: editingAppointment.notes || "",
+        patientId: editingAppointment.patientId
+          ? String(editingAppointment.patientId)
+          : "",
+        doctorId: editingAppointment.doctorId
+          ? String(editingAppointment.doctorId)
+          : "",
       });
     }
-  }, [isOpen, reset]);
+  }, [editingAppointment, reset]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !editingAppointment) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-4">
       <div className="w-full max-w-2xl rounded-3xl border border-[#eee3dc] bg-[#fffaf7] p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-[#5c4a42]">
-            Add Appointment
+            Edit Appointment
           </h2>
 
           <button
@@ -152,7 +165,7 @@ function AddAppointmentModal({ isOpen, onClose, onSubmit, patients, doctors }) {
               type="submit"
               className="rounded-xl bg-[#e8d5cf] px-4 py-2 text-sm font-medium text-[#5c4a42] hover:bg-[#dbc4bd]"
             >
-              Save Appointment
+              Save Changes
             </button>
           </div>
         </form>
@@ -161,4 +174,4 @@ function AddAppointmentModal({ isOpen, onClose, onSubmit, patients, doctors }) {
   );
 }
 
-export default AddAppointmentModal;
+export default EditAppointmentModal;
