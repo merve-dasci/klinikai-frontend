@@ -19,3 +19,8 @@ export const deleteAiResult = async (id) => {
   const response = await apiClient.delete(`/api/ai-results/${id}`);
   return response.data;
 };
+
+export const getAiResultsByNoteId = async (noteId) => {
+  const response = await apiClient.get(`/api/ai-results/note/${noteId}`);
+  return response.data;
+};

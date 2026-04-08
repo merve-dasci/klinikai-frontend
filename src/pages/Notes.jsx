@@ -7,6 +7,10 @@ import toast from "react-hot-toast";
 import AddNoteModal from "../components/layout/notes/AddNoteModal";
 import { getAllVisits } from "../services/visitService";
 import { createNote } from "../services/noteService";
+import { deleteNote } from "../services/noteService";
+import { deleteAiResult } from "../services/aiResultService";
+import { getAiResultsByNoteId } from "../services/aiResultService";
+import DeleteNoteModal from "../components/layout/notes/DeleteNoteModal";
 
 function Notes() {
   const [notes, setNotes] = useState([]);
@@ -16,6 +20,8 @@ function Notes() {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [visits, setVisits] = useState([]);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState(null);
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -103,11 +109,39 @@ const handleAddNote = async (formData) => {
       visitId: Number(formData.visitId),
     });
 
-    setNotes((prev) => [...prev, response]);
-
+   setNotes((prev) => [response, ...prev]);
+   toast.success("Note created successfully");
     setIsAddOpen(false);
+    
   } catch (error) {
+   
     console.error("Create note error:", error);
+    toast.error("Failed to create note");
+  }
+};
+
+const handleDeleteNote = async (id) => {
+  try {
+    const relatedAiResults = await getAiResultsByNoteId(id);
+
+    for (const aiResult of relatedAiResults) {
+      await deleteAiResult(aiResult.id);
+    }
+
+    await deleteNote(id);
+
+    setNotes((prev) => prev.filter((note) => note.id !== id));
+
+    setAiResults((prev) => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+
+    toast.success("Note deleted");
+  } catch (error) {
+    console.error("Delete note error:", error);
+    toast.error("Delete failed");
   }
 };
   return (
@@ -194,6 +228,15 @@ const handleAddNote = async (formData) => {
                               ? "Analyzed"
                               : "AI Analyze"}
                         </button>
+                        <button
+                          onClick={() => {
+                            setSelectedNote(note);
+                            setIsDeleteOpen(true);
+                          }}
+                          className="text-[#d08b8b] hover:underline ml-2"
+                        >
+                          Delete
+                        </button>
                         {aiResults[note.id] && (
                           <div className="mt-3 rounded-2xl border border-[#eee3dc] bg-[#fdf8f6] p-4 text-xs text-[#5c4a42] shadow-sm">
                             <p className="mb-1">
@@ -226,7 +269,14 @@ const handleAddNote = async (formData) => {
           isOpen={isAddOpen}
           onClose={() => setIsAddOpen(false)}
           onSubmit={handleAddNote}
-          visits={visits}/>
+          visits={visits}
+        />
+        <DeleteNoteModal
+          isOpen={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
+          onConfirm={() => handleDeleteNote(selectedNote.id)}
+          note={selectedNote}
+        />
       </section>
     </DashboardLayout>
   );
