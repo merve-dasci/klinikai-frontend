@@ -1,16 +1,14 @@
 import DashboardLayout from "../components/layout/DashboardLayout";
-import { useEffect, useState } from "react";
-import { getAllNotes } from "../services/noteService";
-import { createAiResult } from "../services/aiResultService";
-import { getAllAiResults } from "../services/aiResultService";
+import { useEffect, useState, useMemo } from "react";
+import { getAllNotes, createNote, deleteNote } from "../services/noteService";
+import { createAiResult, getAllAiResults, deleteAiResult, getAiResultsByNoteId } from "../services/aiResultService";
 import toast from "react-hot-toast";
 import AddNoteModal from "../components/layout/notes/AddNoteModal";
 import { getAllVisits } from "../services/visitService";
-import { createNote } from "../services/noteService";
-import { deleteNote } from "../services/noteService";
-import { deleteAiResult } from "../services/aiResultService";
-import { getAiResultsByNoteId } from "../services/aiResultService";
 import DeleteNoteModal from "../components/layout/notes/DeleteNoteModal";
+import { TableRowSkeleton } from "../components/ui/Skeleton";
+import Pagination from "../components/ui/Pagination";
+import { useDebounce } from "../hooks/useDebounce";
 
 function Notes() {
   const [notes, setNotes] = useState([]);
@@ -22,6 +20,32 @@ function Notes() {
   const [visits, setVisits] = useState([]);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const filteredNotes = useMemo(() => {
+    if (!debouncedSearch) return notes;
+    const term = debouncedSearch.toLowerCase();
+    return notes.filter(
+      (n) =>
+        n.patientName?.toLowerCase().includes(term) ||
+        n.doctorName?.toLowerCase().includes(term) ||
+        n.content?.toLowerCase().includes(term),
+    );
+  }, [notes, debouncedSearch]);
+
+  const totalPages = Math.ceil(filteredNotes.length / pageSize);
+  const paginatedNotes = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredNotes.slice(start, start + pageSize);
+  }, [filteredNotes, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -158,7 +182,11 @@ const handleDeleteNote = async (id) => {
               Add Note
             </button>
           </div>
-          {loading ? <p>Loading...</p> : <p>Total Notes: {notes.length}</p>}
+          {loading ? (
+            <div className="h-4 w-32 animate-pulse rounded-xl bg-[#eee3dc]/60" />
+          ) : (
+            <p>Total Notes: {notes.length}</p>
+          )}
           <p className="mt-2 text-sm text-[#9a7f73]">
             Manage visit notes and AI analysis.
           </p>
@@ -167,11 +195,18 @@ const handleDeleteNote = async (id) => {
         <div className="rounded-3xl border border-[#eee3dc] bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[#5c4a42]">Note List</h2>
+            <input
+              type="text"
+              placeholder="Search by patient, doctor, or content..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-72 rounded-xl border border-[#eadfd8] bg-white px-4 py-2 text-sm text-[#5c4a42] outline-none focus:border-[#d8beb3]"
+            />
           </div>
 
           <div className="mb-4 text-sm">
             <p>
-              Total Notes: <b>{notes.length}</b>
+              Total Notes: <b>{filteredNotes.length}</b>
             </p>
           </div>
 
@@ -189,19 +224,15 @@ const handleDeleteNote = async (id) => {
 
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan="5" className="px-4 py-6 text-center">
-                      Loading notes...
-                    </td>
-                  </tr>
-                ) : notes.length === 0 ? (
+                  <TableRowSkeleton cols={5} />
+                ) : paginatedNotes.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="px-4 py-10 text-center">
                       No notes found
                     </td>
                   </tr>
                 ) : (
-                  notes.map((note) => (
+                  paginatedNotes.map((note) => (
                     <tr
                       key={note.id}
                       className="border-b border-[#f1e6df] hover:bg-[#fdf8f6]"
@@ -263,6 +294,11 @@ const handleDeleteNote = async (id) => {
                 )}
               </tbody>
             </table>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
         <AddNoteModal

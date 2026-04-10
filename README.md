@@ -1,16 +1,89 @@
-# React + Vite
+# KlinikAI — Clinical Management Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React-based clinical management dashboard for managing patients, appointments, visits, notes, and AI-powered insights.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** with Vite 8
+- **Tailwind CSS v4** for styling
+- **React Router v7** for routing
+- **React Hook Form** + **Zod v4** for form validation
+- **Axios** with JWT interceptor (access + refresh token)
+- **React Hot Toast** for notifications
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 🔐 JWT authentication with refresh token flow
+- 👥 Patient CRUD with server-side pagination & search
+- 📅 Appointment CRUD with server-side pagination & search
+- 🏥 Visit CRUD with client-side pagination & search
+- 📝 Note CRUD with AI analysis per note
+- 📊 Dashboard with stats, recent appointments, notes & AI insights
+- 🤖 AI-powered note analysis (summary, explanation, suggested action)
+- 📱 Responsive sidebar with mobile hamburger menu
+- ⏳ Skeleton loading animations
+- 🔍 Debounced search across all list pages
+- 🧩 Reusable UI components (Modal, Pagination, FormField, Skeleton)
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+
+- Node.js 18+
+- Backend API running at `http://localhost:8080` (Spring Boot)
+
+### Installation
+
+```bash
+git clone https://github.com/merve-dasci/klinikai-frontend.git
+cd klinikai-frontend
+npm install
+```
+
+### Environment Setup
+
+Copy the example environment file and configure it:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` to set your API URL:
+
+```
+VITE_API_URL=http://localhost:8080
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+### Production Build
+
+```bash
+npm run build
+npm run preview
+```
+
+## Project Structure
+
+```
+src/
+├── api/            # Axios client with JWT interceptors
+├── components/
+│   ├── dashboard/  # StatCard
+│   ├── layout/     # DashboardLayout, Sidebar, Modals
+│   └── ui/         # Modal, Pagination, Skeleton, FormField
+├── context/        # AuthContext (login, logout, user state)
+├── hooks/          # useAuth, useDebounce, usePatients
+├── pages/          # Dashboard, Patients, Appointments, Visits, Notes, Login, NotFound
+├── routes/         # AppRoutes, PrivateRoute
+├── schemas/        # Zod validation schemas
+└── services/       # API service functions
+```
+
+## License
+
+This project is private.

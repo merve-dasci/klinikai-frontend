@@ -4,8 +4,13 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { visitSchema } from "../../../schemas/visitSchema";
 import Modal from "../../ui/Modal";
 
-function AddVisitModal({ isOpen, onClose, onSubmit, patients, doctors, appointments }) {
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
+function EditVisitModal({ isOpen, onClose, editingVisit, onSubmit, patients, doctors, appointments }) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm({
     resolver: standardSchemaResolver(visitSchema),
     defaultValues: {
       visitDate: "",
@@ -16,13 +21,22 @@ function AddVisitModal({ isOpen, onClose, onSubmit, patients, doctors, appointme
   });
 
   useEffect(() => {
-    if (isOpen) {
-      reset({ visitDate: "", patientId: "", doctorId: "", appointmentId: "" });
+    if (editingVisit) {
+      reset({
+        visitDate: editingVisit.visitDate
+          ? editingVisit.visitDate.slice(0, 16)
+          : "",
+        patientId: editingVisit.patientId ? String(editingVisit.patientId) : "",
+        doctorId: editingVisit.doctorId ? String(editingVisit.doctorId) : "",
+        appointmentId: editingVisit.appointmentId ? String(editingVisit.appointmentId) : "",
+      });
     }
-  }, [isOpen, reset]);
+  }, [editingVisit, reset]);
+
+  if (!editingVisit) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Visit" maxWidth="max-w-2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit Visit" maxWidth="max-w-2xl">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -70,7 +84,7 @@ function AddVisitModal({ isOpen, onClose, onSubmit, patients, doctors, appointme
             Cancel
           </button>
           <button type="submit" disabled={isSubmitting} className="rounded-xl bg-[#e8d5cf] px-4 py-2 text-sm font-medium text-[#5c4a42] hover:bg-[#dbc4bd] disabled:opacity-50">
-            {isSubmitting ? "Saving..." : "Save Visit"}
+            {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </form>
@@ -78,4 +92,4 @@ function AddVisitModal({ isOpen, onClose, onSubmit, patients, doctors, appointme
   );
 }
 
-export default AddVisitModal;
+export default EditVisitModal;

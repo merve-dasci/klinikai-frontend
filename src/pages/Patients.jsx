@@ -3,6 +3,9 @@ import DashboardLayout from "../components/layout/DashboardLayout";
 import AddPatientModal from "../components/layout/patients/AddPatientModal";
 import EditPatientModal from "../components/layout/patients/EditPatientModal";
 import DeletePatientModal from "../components/layout/patients/DeletePatientModal";
+import { TableRowSkeleton } from "../components/ui/Skeleton";
+import Pagination from "../components/ui/Pagination";
+import { useDebounce } from "../hooks/useDebounce";
 import {
   createPatient,
   updatePatient,
@@ -13,6 +16,7 @@ import { usePatients } from "../hooks/usePatients";
 
 function Patients() {
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
@@ -25,7 +29,7 @@ function Patients() {
   const itemsPerPage = 5;
 
   const { patients, loading, errorMessage, totalPages, fetchPatients } =
-    usePatients(currentPage, itemsPerPage, searchTerm);
+    usePatients(currentPage, itemsPerPage, debouncedSearch);
 
 
 
@@ -145,11 +149,7 @@ function Patients() {
 
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan="4" className="px-4 py-6 text-center">
-                      Loading patients...
-                    </td>
-                  </tr>
+                  <TableRowSkeleton cols={4} />
                 ) : patients.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="px-4 py-10 text-center">
@@ -195,45 +195,11 @@ function Patients() {
             </table>
           </div>
 
-          <div className="mt-6 flex items-center justify-between border-t border-[#f1e6df] pt-4">
-            <p className="text-sm text-[#9a7f73]">
-              Page {currentPage} of {totalPages || 1}
-            </p>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-                className="rounded-xl border px-4 py-2 text-sm disabled:opacity-50"
-              >
-                Previous
-              </button>
-
-              {Array.from({ length: totalPages || 1 }, (_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`rounded-xl px-4 py-2 text-sm ${
-                    currentPage === i + 1
-                      ? "bg-[#f3e4df]"
-                      : "border hover:bg-[#f7ede8]"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className="rounded-xl border px-4 py-2 text-sm disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
 
         <AddPatientModal

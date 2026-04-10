@@ -1,8 +1,13 @@
 import DashboardLayout from "../components/layout/DashboardLayout";
-import { useEffect, useState } from "react";
-import { getAllVisits, deleteVisit, createVisit } from "../services/visitService";
+import { useEffect, useState, useMemo } from "react";
+import { getAllVisits, deleteVisit, createVisit, updateVisit } from "../services/visitService";
 import DeleteVisitModal from "../components/layout/visits/DeleteVisitModal";
 import AddVisitModal from "../components/layout/visits/AddVisitModal";
+import EditVisitModal from "../components/layout/visits/EditVisitModal";
+import { TableRowSkeleton } from "../components/ui/Skeleton";
+import Pagination from "../components/ui/Pagination";
+import { useDebounce } from "../hooks/useDebounce";
+import toast from "react-hot-toast";
 
 import { getAllPatientsList } from "../services/patientListService";
 import { getAllUsers } from "../services/userService";
@@ -16,10 +21,37 @@ function Visits() {
     const [selectedVisit, setSelectedVisit] = useState(null);
 
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingVisit, setEditingVisit] = useState(null);
+
+    const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearch = useDebounce(searchTerm);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
 
     const [patients, setPatients] = useState([]);
     const [doctors, setDoctors] = useState([]);
     const [appointments, setAppointments] = useState([]);
+
+    const filteredVisits = useMemo(() => {
+      if (!debouncedSearch) return visits;
+      const term = debouncedSearch.toLowerCase();
+      return visits.filter(
+        (v) =>
+          v.patientName?.toLowerCase().includes(term) ||
+          v.doctorName?.toLowerCase().includes(term),
+      );
+    }, [visits, debouncedSearch]);
+
+    const totalPages = Math.ceil(filteredVisits.length / pageSize);
+    const paginatedVisits = useMemo(() => {
+      const start = (currentPage - 1) * pageSize;
+      return filteredVisits.slice(start, start + pageSize);
+    }, [filteredVisits, currentPage]);
+
+    useEffect(() => {
+      setCurrentPage(1);
+    }, [debouncedSearch]);
 
     useEffect(() => {
       const fetchVisits = async () => {
@@ -62,8 +94,10 @@ function Visits() {
         );
         setIsDeleteOpen(false);
         setSelectedVisit(null);
+        toast.success("Visit deleted successfully");
       } catch (error) {
         console.error("Delete visit error:", error);
+        toast.error("Failed to delete visit");
       }
     };
 
@@ -77,10 +111,32 @@ function Visits() {
         });
 
         setVisits((prev) => [...prev, response]);
-
+        toast.success("Visit created successfully");
         setIsAddOpen(false);
       } catch (error) {
         console.error("Create visit error:", error);
+        toast.error("Failed to create visit");
+      }
+    };
+
+    const handleEditVisit = async (formData) => {
+      try {
+        const response = await updateVisit(editingVisit.id, {
+          ...formData,
+          patientId: Number(formData.patientId),
+          doctorId: Number(formData.doctorId),
+          appointmentId: Number(formData.appointmentId),
+        });
+
+        setVisits((prev) =>
+          prev.map((v) => (v.id === editingVisit.id ? response : v)),
+        );
+        toast.success("Visit updated successfully");
+        setIsEditOpen(false);
+        setEditingVisit(null);
+      } catch (error) {
+        console.error("Update visit error:", error);
+        toast.error("Failed to update visit");
       }
     };
   return (
@@ -106,11 +162,18 @@ function Visits() {
       <div className="rounded-3xl border border-[#eee3dc] bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[#5c4a42]">Visit List</h2>
+          <input
+            type="text"
+            placeholder="Search by patient or doctor..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-64 rounded-xl border border-[#eadfd8] bg-white px-4 py-2 text-sm text-[#5c4a42] outline-none focus:border-[#d8beb3]"
+          />
         </div>
 
         <div className="mb-4 flex items-center justify-between text-sm">
           <p>
-            Total Visits: <b>{visits.length}</b>
+            Total Visits: <b>{filteredVisits.length}</b>
           </p>
         </div>
 
@@ -127,19 +190,15 @@ function Visits() {
 
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan="4" className="px-4 py-6 text-center">
-                    Loading visits...
-                  </td>
-                </tr>
-              ) : visits.length === 0 ? (
+                <TableRowSkeleton cols={4} />
+              ) : paginatedVisits.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="px-4 py-10 text-center">
                     No visits found
                   </td>
                 </tr>
               ) : (
-                visits.map((visit) => (
+                paginatedVisits.map((visit) => (
                   <tr
                     key={visit.id}
                     className="border-b border-[#f1e6df] hover:bg-[#fdf8f6]"
@@ -150,7 +209,13 @@ function Visits() {
                       {new Date(visit.visitDate).toLocaleString("tr-TR")}
                     </td>
                     <td className="px-4 py-3 space-x-2">
-                      <button className="text-[#7b655c] hover:underline">
+                      <button
+                        onClick={() => {
+                          setEditingVisit(visit);
+                          setIsEditOpen(true);
+                        }}
+                        className="text-[#7b655c] hover:underline"
+                      >
                         Edit
                       </button>
                       <button
@@ -168,6 +233,11 @@ function Visits() {
               )}
             </tbody>
           </table>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 
@@ -175,6 +245,19 @@ function Visits() {
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         onSubmit={handleAddVisit}
+        patients={patients}
+        doctors={doctors}
+        appointments={appointments}
+      />
+
+      <EditVisitModal
+        isOpen={isEditOpen}
+        onClose={() => {
+          setIsEditOpen(false);
+          setEditingVisit(null);
+        }}
+        editingVisit={editingVisit}
+        onSubmit={handleEditVisit}
         patients={patients}
         doctors={doctors}
         appointments={appointments}

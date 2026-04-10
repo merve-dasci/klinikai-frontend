@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../components/layout/DashboardLayout";
+import { TableRowSkeleton } from "../components/ui/Skeleton";
+import Pagination from "../components/ui/Pagination";
+import { useDebounce } from "../hooks/useDebounce";
 
 import { getAllPatientsList } from "../services/patientListService";
 import { getAllUsers } from "../services/userService";
@@ -32,6 +35,7 @@ function Appointments() {
   const itemsPerPage = 5;
 
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm);
 
  useEffect(() => {
    const fetchAppointments = async () => {
@@ -42,7 +46,7 @@ function Appointments() {
       const data = await getAppointmentsPaginated(
         currentPage - 1,
         itemsPerPage,
-        searchTerm
+        debouncedSearch
       );
       setAppointments(data.content);
       setTotalPages(data.totalPages);
@@ -55,15 +59,13 @@ function Appointments() {
    };
 
    fetchAppointments();
- }, [currentPage, searchTerm]);
+ }, [currentPage, debouncedSearch]);
 
   useEffect(() => {
     const fetchSelectOptions = async () => {
       try {
         const patientData = await getAllPatientsList();
         const userData = await getAllUsers();
-        console.log("PATIENT DATA:", patientData);
-        console.log("USER DATA:", userData);
 
         setPatients(patientData);
         setDoctors(userData);
@@ -207,11 +209,7 @@ const handleDeleteAppointment = async () => {
 
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan="5" className="px-4 py-6 text-center">
-                      Loading appointments...
-                    </td>
-                  </tr>
+                  <TableRowSkeleton cols={5} />
                 ) : appointments.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="px-4 py-10 text-center">
@@ -264,45 +262,11 @@ const handleDeleteAppointment = async () => {
                 )}
               </tbody>
             </table>
-            <div className="mt-6 flex items-center justify-between border-t border-[#f1e6df] pt-4">
-              <p className="text-sm text-[#9a7f73]">
-                Page {currentPage} of {totalPages || 1}
-              </p>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="rounded-xl border px-4 py-2 text-sm disabled:opacity-50"
-                >
-                  Previous
-                </button>
-
-                {Array.from({ length: totalPages || 1 }, (_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`rounded-xl px-4 py-2 text-sm ${
-                      currentPage === i + 1
-                        ? "bg-[#f3e4df]"
-                        : "border hover:bg-[#f7ede8]"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(p + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="rounded-xl border px-4 py-2 text-sm disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
         <AddAppointmentModal

@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const apiClient = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: API_URL,
   withCredentials: true,
 });
 
@@ -30,9 +32,15 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
+        const storedRefreshToken = localStorage.getItem("refreshToken");
+
+        if (!storedRefreshToken) {
+          throw new Error("No refresh token available");
+        }
+
         const refreshResponse = await axios.post(
-          "http://localhost:8080/auth/refresh",
-          {},
+          `${API_URL}/auth/refresh`,
+          { refreshToken: storedRefreshToken },
           { withCredentials: true },
         );
 
@@ -45,6 +53,7 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
         window.location.href = "/";
         return Promise.reject(refreshError);
       }

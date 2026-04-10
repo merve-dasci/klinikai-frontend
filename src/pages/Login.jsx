@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { loginUser } from "../services/authService";
+import { useNavigate, Navigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
 function Login() {
   const navigate = useNavigate();
+  const { login, isAuthenticated } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -11,6 +12,11 @@ function Login() {
   });
 
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleChange = (event) => {
     setFormData({
@@ -21,29 +27,35 @@ function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
+    setMessage("");
 
     try {
-      const data = await loginUser(formData);
-      console.log(data);
-     localStorage.setItem("token", data.data.accessToken);
-      setMessage("Login başarılı");
+      await login(formData);
       navigate("/dashboard");
     } catch (error) {
       console.error("Login hatası:", error);
-      setMessage("Login başarısız");
+      setMessage("Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-        <h2 className="mb-6 text-center text-3xl font-bold text-slate-800">
-          KlinikAI Login
-        </h2>
+    <div className="flex min-h-screen items-center justify-center bg-[#f8f5f2]">
+      <div className="w-full max-w-md rounded-3xl border border-[#eee3dc] bg-[#fffaf7] p-8 shadow-lg">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-bold tracking-wide text-[#5c4a42]">
+            KlinikAI
+          </h1>
+          <p className="mt-1 text-sm text-[#9a7f73]">
+            Sign in to your account
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label className="mb-1 block text-sm font-medium text-[#7b655c]">
               Email
             </label>
             <input
@@ -51,12 +63,13 @@ function Login() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-blue-500"
+              placeholder="name@clinic.com"
+              className="w-full rounded-xl border border-[#eadfd8] bg-white px-4 py-2.5 text-sm text-[#5c4a42] outline-none transition focus:border-[#d8beb3] focus:ring-2 focus:ring-[#eee3dc]"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
+            <label className="mb-1 block text-sm font-medium text-[#7b655c]">
               Password
             </label>
             <input
@@ -64,20 +77,24 @@ function Login() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 outline-none focus:border-blue-500"
+              placeholder="••••••••"
+              className="w-full rounded-xl border border-[#eadfd8] bg-white px-4 py-2.5 text-sm text-[#5c4a42] outline-none transition focus:border-[#d8beb3] focus:ring-2 focus:ring-[#eee3dc]"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700"
+            disabled={loading}
+            className="w-full rounded-xl bg-[#5c4a42] py-2.5 text-sm font-semibold text-white transition hover:bg-[#4a3b35] disabled:opacity-50"
           >
-            Login
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
         {message && (
-          <p className="mt-4 text-center text-sm text-slate-600">{message}</p>
+          <div className="mt-4 rounded-xl border border-[#e7c9c9] bg-[#fff4f4] px-4 py-2.5 text-center text-sm text-[#a06a6a]">
+            {message}
+          </div>
         )}
       </div>
     </div>
